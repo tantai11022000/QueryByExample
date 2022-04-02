@@ -1,0 +1,32 @@
+select c.object_id, sys.tables.name as NAMETABLE,c.name AS NAMECOMLUMNS from sys.tables,
+(SELECT  * FROM SYS.columns as a, 
+(select * from sys.foreign_key_columns where constraint_object_id 
+= (select OBJECT_ID from sys.foreign_keys where NAME like '%KHOA_GIANGVIEN%' or name like '%GIANGVIEN_KHOA%')) as b
+where (a.object_id = b.parent_object_id and a.column_id=b.parent_column_id) or (a.object_id = b.referenced_object_id and a.column_id = b.referenced_column_id)) as c
+where sys.tables.object_id = c.object_id
+
+
+
+
+select c.NAMEKEY,c.object_id, sys.tables.name as NAMETABLE,c.name AS NAMECOLUMN from sys.tables,
+(SELECT  * FROM SYS.columns as a, 
+(select y.name as NAMEKEY,x.constraint_object_id,x.referenced_column_id,x.referenced_object_id,x.parent_column_id,x.parent_object_id 
+from sys.foreign_key_columns as x, (select * from sys.foreign_keys where NAME like '%KHOA_GIANGVIEN%' or name like '%GIANGVIEN_KHOA%') as y 
+where x.constraint_object_id = y.object_id) as b
+where (a.object_id = b.parent_object_id and a.column_id=b.parent_column_id) or (a.object_id = b.referenced_object_id and a.column_id = b.referenced_column_id)) as c
+where sys.tables.object_id = c.object_id
+
+
+SELECT   
+    f.name AS foreign_key_name  
+   ,OBJECT_NAME(f.parent_object_id) AS table_name  
+   ,COL_NAME(fc.parent_object_id, fc.parent_column_id) AS constraint_column_name  
+   ,OBJECT_NAME (f.referenced_object_id) AS referenced_object  
+   ,COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS referenced_column_name  
+    
+FROM sys.foreign_keys AS f  
+INNER JOIN sys.foreign_key_columns AS fc   
+   ON f.object_id = fc.constraint_object_id   
+WHERE (f.parent_object_id = OBJECT_ID('GIANGVIEN') AND f.referenced_object_id = object_id('KHOA')) 
+or (f.parent_object_id = OBJECT_ID('KHOA') AND f.referenced_object_id = object_id('GIANGVIEN'))
+
