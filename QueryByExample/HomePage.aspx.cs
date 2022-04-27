@@ -28,6 +28,7 @@ namespace QueryByExample
             CheckBoxListColumn.Items.Clear();
             listTableName.Clear();
             TextBox1.Text = "";
+            GridView1.Controls.Clear();
             foreach (ListItem item in CheckBoxListTable.Items)
             {
                 if (item.Selected)
@@ -54,8 +55,8 @@ namespace QueryByExample
                 {
                     if (!listColumnNameTemp1.ContainsKey(position))
                     {
-                        listColumnNameTemp1.Add(position, item.Text.ToString());
-                        listTableNameTemp1.Add(position, item.Value.ToString());
+                        listColumnNameTemp1.Add(position, item.Value.ToString());
+                        listTableNameTemp1.Add(position, item.Text.ToString().Split('.')[0]);
                         
                     }
                 }
@@ -72,19 +73,19 @@ namespace QueryByExample
 
             DataTable dt = new DataTable();
 
-            dt.Columns.Add("TenCot", Type.GetType("System.String"));
-            dt.Columns.Add("TenBang", Type.GetType("System.String"));
+            dt.Columns.Add("Tên Cột", Type.GetType("System.String"));
+            dt.Columns.Add("Tên Bảng", Type.GetType("System.String"));
             int positionRow = 0;
             foreach (KeyValuePair<int, string> item in listColumnNameTemp1)
             {
                 dt.Rows.Add();
-                dt.Rows[positionRow]["TenCot"] = item.Value;
+                dt.Rows[positionRow]["Tên Cột"] = item.Value;
                 positionRow++;
             }
             positionRow = 0;
             foreach (KeyValuePair<int, string> item in listTableNameTemp1)
             {
-                dt.Rows[positionRow]["TenBang"] = item.Value;
+                dt.Rows[positionRow]["Tên Bảng"] = item.Value;
                 positionRow++;
             }
 
@@ -116,15 +117,24 @@ namespace QueryByExample
 
         protected void ButtonQuery_Click(object sender, EventArgs e)
         {
+            lbltxt.Text = "";
+            if (GridView1.Controls.Count <= 0)
+            {
+                lbltxt.Text = "Bạn chưa chọn dữ liệu";
+                return;
+            }    
             string mess = "";
             string groupBy = "";
+            string having = "";
             string orderBy = "";
             string tableName = string.Join(", ", listTableName);
             String columnName = "";
             mess = "SELECT ";
             String dk = "";
             Boolean isGetGroupBy = false;
+            Boolean isGetHaving = false;
             Boolean isFirstDK = true;
+            Boolean isFirstHaving = true;
             for (int i = 0; i < GridView1.Rows.Count; i++)
             {
                 TextBox strBang = new TextBox();
@@ -132,7 +142,7 @@ namespace QueryByExample
                 TextBox dieuKien = (TextBox)GridView1.Rows[i].Cells[2].FindControl("TextBoxDieuKien");
                 DropDownList function = (DropDownList)GridView1.Rows[i].Cells[0].FindControl("DropDownList1");
                 DropDownList sort = (DropDownList)GridView1.Rows[i].Cells[1].FindControl("DropDownList2");
-
+                Boolean isHaving = false;
                 
 
                 strBang.Text = GridView1.Rows[i].Cells[4].Text;
@@ -141,6 +151,7 @@ namespace QueryByExample
                 if (!function.SelectedItem.Value.ToString().Equals("")) // Xử lý xem có chọn function nào không để sinh tên tạm cho trường đã chọn
                 {
                     isGetGroupBy = true;
+                    isHaving = true;
                     columnName = function.SelectedItem.Value.ToString() + "(" + strBang.Text.ToString() + "." + strCot.Text.ToString() + ") AS "
                         + function.SelectedItem.Value.ToString() + strCot.Text.ToString();
                     if (!sort.SelectedItem.Value.ToString().Equals("")) // xử lý xem có chọn sort không nhưng ở trường hợp là có đặt tên temp cho trường đã chọn
@@ -170,14 +181,27 @@ namespace QueryByExample
                 }
                 if (dieuKien.Text.ToString() != "")
                 {
-                    if (isFirstDK)
+                    if (isHaving)
                     {
-                        dk += strBang.Text.ToString() + "." + strCot.Text.ToString() + dieuKien.Text.ToString();
-                        isFirstDK = false;
+                        isGetHaving = true;
+                        if (isFirstHaving)
+                        {
+                            having += function.SelectedItem.Value.ToString() + "(" + strBang.Text.ToString() + "." + strCot.Text.ToString() + ") " + dieuKien.Text.ToString();
+                            isFirstHaving = false;
+                        }
+                        else
+                            having += " AND " + function.SelectedItem.Value.ToString() + "(" + strBang.Text.ToString() + "." + strCot.Text.ToString() + ") " + dieuKien.Text.ToString();
+                    }    
+                    else 
+                    {
+                        if (isFirstDK)
+                        {
+                            dk += strBang.Text.ToString() + "." + strCot.Text.ToString() + " " + dieuKien.Text.ToString();
+                            isFirstDK = false;
+                        }
+                        else
+                            dk += " AND " + strBang.Text.ToString() + "." + strCot.Text.ToString() + " " + dieuKien.Text.ToString();
                     }
-                    else
-                        dk += " AND " + strBang.Text.ToString() + "." + strCot.Text.ToString() + dieuKien.Text.ToString();
-                    
                 }
 
 
@@ -225,10 +249,20 @@ namespace QueryByExample
             }
             if (isGetGroupBy)
             {
-                if (!orderBy.Equals(""))
-                    mess += " FROM " + tableName + where + dk + " Group By" + groupBy + " Order By" + orderBy;
+                if (isGetHaving)
+                {
+                    if (!orderBy.Equals(""))
+                        mess += " FROM " + tableName + where + dk + " Group By" + groupBy + " Having "+ having +" Order By" + orderBy;
+                    else
+                        mess += " FROM " + tableName + where + dk + " Group By" + groupBy + " Having " + having;
+                }
                 else
-                    mess += " FROM " + tableName + where + dk + " Group By" + groupBy;
+                {
+                    if (!orderBy.Equals(""))
+                        mess += " FROM " + tableName + where + dk + " Group By" + groupBy + " Order By" + orderBy;
+                    else
+                        mess += " FROM " + tableName + where + dk + " Group By" + groupBy;
+                }
             }
             else
             {
@@ -294,6 +328,7 @@ namespace QueryByExample
                             ListItem item = new ListItem();
                             item.Text = sdr["TABLE_NAME"].ToString();
                             CheckBoxListTable.Items.Add(item);
+                            CheckBoxListTable.RepeatColumns = 5;
                             CheckBoxListTable.AutoPostBack = true;
                         }
                         
@@ -321,12 +356,12 @@ namespace QueryByExample
                         while (sdr.Read())
                         {
                             ListItem item = new ListItem();
-                            item.Text = sdr["COLUMN_NAME"].ToString();
-                            item.Value = tableName.ToString();
+                            item.Text = tableName.ToString() + "." +sdr["COLUMN_NAME"].ToString();
+                            item.Value = sdr["COLUMN_NAME"].ToString();
+
                             CheckBoxListColumn.Items.Add(item);
                             CheckBoxListColumn.RepeatColumns = 5;
                             CheckBoxListColumn.AutoPostBack = true;
-                           
                             
                         }
                     }

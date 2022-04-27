@@ -195,12 +195,6 @@
     <Content Include="Account\ResetPasswordConfirmation.aspx" />
     <Content Include="Account\TwoFactorAuthenticationSignIn.aspx" />
     <Content Include="Account\VerifyPhoneNumber.aspx" />
-    <Content Include="App_Data\NWind.mdf" />
-    <Content Include="App_Data\NWind_log.ldf">
-      <DependentUpon>NWind.mdf</DependentUpon>
-    </Content>
-    <Content Include="App_Data\SideMenu.xml" />
-    <Content Include="App_Data\TopMenu.xml" />
     <Content Include="Content\Images\AquaHeader.jpg" />
     <Content Include="Content\Images\BlackGlassHeader.jpg" />
     <Content Include="Content\Images\GlassHeader.jpg" />
@@ -424,6 +418,9 @@
     <EmbeddedResource Include="XtraReport1.resx">
       <DependentUpon>XtraReport1.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Data\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
