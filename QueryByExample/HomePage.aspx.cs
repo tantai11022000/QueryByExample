@@ -28,7 +28,8 @@ namespace QueryByExample
             CheckBoxListColumn.Items.Clear();
             listTableName.Clear();
             TextBox1.Text = "";
-            GridView1.Controls.Clear();
+            GridView1.DataSource = null;
+            GridView1.DataBind();
             foreach (ListItem item in CheckBoxListTable.Items)
             {
                 if (item.Selected)
@@ -60,7 +61,7 @@ namespace QueryByExample
                         
                     }
                 }
-                if (!item.Selected)
+                else
                 {
                     if (listColumnNameTemp1.ContainsKey(position))
                     {
@@ -105,7 +106,8 @@ namespace QueryByExample
             listColumnName.Clear();
             listColumnNameTemp1.Clear();
             listTableNameTemp1.Clear();
-            GridView1.Controls.Clear();
+            GridView1.DataSource = null;
+            GridView1.DataBind();
             for (int i = 0; i < listTableName.Count; i++)
             {
                 GetColumnName(listTableName[i].ToString());
@@ -117,8 +119,9 @@ namespace QueryByExample
 
         protected void ButtonQuery_Click(object sender, EventArgs e)
         {
+            Console.WriteLine(GridView1.Rows.Count);
             lbltxt.Text = "";
-            if (GridView1.Controls.Count <= 0)
+            if (GridView1.Rows.Count <= 0)
             {
                 lbltxt.Text = "Bạn chưa chọn dữ liệu";
                 return;
